@@ -19,7 +19,7 @@ HW1 and HW2 together add up to **100 points**. See each subfolder's `README.md` 
 ## Setup
 
 ```bash
-sudo apt-get install -y python3-dev
+sudo apt-get install -y python3-dev build-essential
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -35,8 +35,9 @@ See the `README.md` inside each subfolder for task details, requirements, and ex
 ## Nebius Cloud Experiments
 
 HW1 and HW2 need a CUDA GPU. The project includes scripts for an end-to-end
-Nebius run: create a GPU VM, upload the repo, run HW1/HW2/HW3, collect results,
-stop the VM, and delete the VM plus boot disk.
+Nebius run: create a GPU VM, upload the repo, install the same OS prerequisites
+listed in setup, run HW1/HW2/HW3, collect results, stop the VM, and delete the
+VM plus boot disk.
 
 ### 1. Install and Configure Nebius CLI
 
@@ -108,6 +109,15 @@ After VM creation and upload, you can run individual jobs:
 ./scripts/04_collect_results.sh
 ```
 
+Additional HW2 experiments can be run after the standard HW2 script:
+
+```bash
+./scripts/run_hw2_optimal.sh
+./scripts/run_hw2_optimized_2.sh
+./scripts/run_hw2_optimized_v3.sh
+./scripts/04_collect_results.sh
+```
+
 ### 5. Result Locations
 
 Remote results are copied into:
@@ -121,7 +131,9 @@ results/<VM_NAME>/hw3/
 Expected artifacts:
 
 - HW1: `roofline.png`, `roofline_data.json`, `hw1_run.log`
-- HW2: `v0_slow_trace.json`, `v1_optimized_trace.json`, `hw2_run.log`
+- HW2: `v0_slow_trace.json`, `v1_optimized_trace.json`, `hw2_run.log`, plus
+  optional experiment logs such as `hw2_optimal_run.log`,
+  `hw2_optimized_2_run.log`, and `hw2_optimized_v3_run.log`
 - HW3: `hw3_results.png`, `hw3_policy_results.png`, `hw3_tests.log`, `hw3_run.log`
 
 Stop the VM when you may rerun later. Delete it only after confirming the

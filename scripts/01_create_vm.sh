@@ -21,6 +21,22 @@ PRESET="${NEBIUS_PRESET:-1gpu-16vcpu-64gb}"
 BOOT_DISK_SIZE_GB="${BOOT_DISK_SIZE_GB:-200}"
 BOOT_DISK_TYPE="${BOOT_DISK_TYPE:-network_ssd}"
 IMAGE_FAMILY="${NEBIUS_IMAGE_FAMILY:-ubuntu24.04-cuda13.0}"
+CREATE_SUCCEEDED=false
+BOOT_DISK_ID=""
+
+cleanup_hint() {
+  if [[ "${CREATE_SUCCEEDED}" == "true" ]]; then
+    return
+  fi
+  if [[ -n "${BOOT_DISK_ID}" ]]; then
+    echo
+    echo "VM creation did not finish. A boot disk may still exist:" >&2
+    echo "  ${BOOT_DISK_ID}" >&2
+    echo "Clean it up with:" >&2
+    echo "  nebius compute disk delete ${BOOT_DISK_ID}" >&2
+  fi
+}
+trap cleanup_hint EXIT
 
 mkdir -p "$(dirname "${SSH_PRIVATE_KEY_PATH}")"
 if [[ ! -f "${SSH_PRIVATE_KEY_PATH}" ]]; then
@@ -45,6 +61,17 @@ BOOT_DISK_ID="$(nebius compute disk create \
   --source-image-family-image-family "${IMAGE_FAMILY}" \
   --block-size-bytes 4096 \
   --format json | jq -r '.metadata.id')"
+
+set_env_var VM_NAME "${VM_NAME}"
+set_env_var NEBIUS_PLATFORM "${PLATFORM}"
+set_env_var NEBIUS_PRESET "${PRESET}"
+set_env_var NEBIUS_SUBNET_ID "${SUBNET_ID}"
+set_env_var NEBIUS_BOOT_DISK_ID "${BOOT_DISK_ID}"
+set_env_var REMOTE_USER "${REMOTE_USER}"
+set_env_var REMOTE_PORT "${REMOTE_PORT:-22}"
+set_env_var SSH_PRIVATE_KEY_PATH "${SSH_PRIVATE_KEY_PATH}"
+set_env_var SSH_PUBLIC_KEY_PATH "${SSH_PUBLIC_KEY_PATH}"
+set_env_var REMOTE_WORKDIR "${REMOTE_WORKDIR:-gpu_and_inference_hw}"
 
 USER_DATA="$(jq -Rs '.' <<EOF
 users:
@@ -96,18 +123,9 @@ if [[ -z "${REMOTE_HOST:-}" ]]; then
   exit 1
 fi
 
-set_env_var VM_NAME "${VM_NAME}"
-set_env_var NEBIUS_PLATFORM "${PLATFORM}"
-set_env_var NEBIUS_PRESET "${PRESET}"
-set_env_var NEBIUS_SUBNET_ID "${SUBNET_ID}"
 set_env_var NEBIUS_VM_ID "${VM_ID}"
-set_env_var NEBIUS_BOOT_DISK_ID "${BOOT_DISK_ID}"
-set_env_var REMOTE_USER "${REMOTE_USER}"
 set_env_var REMOTE_HOST "${REMOTE_HOST}"
-set_env_var REMOTE_PORT "${REMOTE_PORT:-22}"
-set_env_var SSH_PRIVATE_KEY_PATH "${SSH_PRIVATE_KEY_PATH}"
-set_env_var SSH_PUBLIC_KEY_PATH "${SSH_PUBLIC_KEY_PATH}"
-set_env_var REMOTE_WORKDIR "${REMOTE_WORKDIR:-gpu_and_inference_hw}"
+CREATE_SUCCEEDED=true
 
 echo "VM created: ${VM_ID}"
 echo "Boot disk:  ${BOOT_DISK_ID}"

@@ -10,6 +10,15 @@ REMOTE_DIR="$(remote_workdir)"
 remote_ssh "bash -lc '
 set -euo pipefail
 cd \"${REMOTE_DIR}\"
+if ! python3 - <<\"PY\" >/dev/null 2>&1
+import sysconfig
+from pathlib import Path
+raise SystemExit(0 if (Path(sysconfig.get_paths()[\"include\"]) / \"Python.h\").exists() else 1)
+PY
+then
+  sudo apt-get update
+  sudo apt-get install -y python3-dev build-essential
+fi
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt

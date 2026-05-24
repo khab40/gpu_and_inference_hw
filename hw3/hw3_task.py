@@ -669,15 +669,16 @@ if __name__ == "__main__":
 #     realistic scenario in which you would pick each one.
 #
 # Q1:
-# Prefix caching helped both workloads, but much more on Prefill-Heavy. In my
-# run, Prefill-Heavy dropped from 697 to 284 total steps, TTFT mean dropped
-# from 233.0 to 48.1 steps, and E2E mean dropped from 360.6 to 152.3 steps.
-# The cache saved 11008 prompt tokens with a 50.1% hit rate. Decode-Heavy
-# improved less: 1511 to 1095 total steps, TTFT mean 737.7 to 430.8, and E2E
-# mean 1084.2 to 773.1, with 1920 tokens saved and a 10.5% hit rate. The
-# prefill-heavy workload has long shared prompts, so prefix reuse removes a
-# large fraction of the expensive prompt computation; decode-heavy spends more
-# of its time generating new tokens that cannot be skipped by prefix caching.
+# Prefix caching helped both workloads in the collected run, but much more on
+# Prefill-Heavy. Prefill-Heavy dropped from 697 to 284 total steps, TTFT mean
+# dropped from 233.0 to 48.1 steps, and E2E mean dropped from 360.6 to 152.3
+# steps. The cache saved 11008 prompt tokens with a 50.1% hit rate.
+# Decode-Heavy improved less: 1511 to 1095 total steps, TTFT mean 737.7 to
+# 430.8, and E2E mean 1084.2 to 773.1, with 1920 tokens saved and a 10.5% hit
+# rate. The prefill-heavy workload has long shared prompts, so prefix reuse
+# removes a large fraction of the expensive prompt computation; decode-heavy
+# spends more of its time generating new tokens that cannot be skipped by
+# prefix caching.
 #
 # Q2:
 # When the first request finishes, insert_prefix() creates cache entries for
@@ -695,7 +696,8 @@ if __name__ == "__main__":
 #
 # Q3:
 # With caching ON, eviction can reclaim cached-only prefix blocks before the
-# scheduler preempts live requests. That reduced preemptions in my run:
+# scheduler preempts live requests. That reduced preemptions in the collected
+# run:
 # Prefill-Heavy went from 91 preemptions without caching to 18 with caching,
 # and Decode-Heavy went from 273 to 159. Eviction fails when there are not
 # enough cached-only blocks to reclaim, either because blocks are still pinned

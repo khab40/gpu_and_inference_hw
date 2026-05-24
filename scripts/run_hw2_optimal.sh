@@ -7,6 +7,8 @@ source "${SCRIPT_DIR}/common.sh"
 load_env
 
 REMOTE_DIR="$(remote_workdir)"
+HW2_OPTIMAL_ARGS="${HW2_OPTIMAL_ARGS:---include-baseline --profile}"
+
 remote_ssh "bash -lc '
 set -euo pipefail
 cd \"${REMOTE_DIR}\"
@@ -28,5 +30,5 @@ import torch
 print(\"CUDA available:\", torch.cuda.is_available())
 print(\"GPU:\", torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"none\")
 PY
-python hw2/hw2_task.py 2>&1 | tee hw2/results/hw2_run.log
+python hw2/hw2-optimal.py ${HW2_OPTIMAL_ARGS} 2>&1 | tee hw2/results/hw2_optimal_run.log
 '"
