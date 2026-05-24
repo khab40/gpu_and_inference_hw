@@ -4,6 +4,10 @@
 
 Write the fastest possible autoregressive generation loop for a tiny decoder-only transformer. You'll start from a slow baseline, identify what's wasting time, and apply a series of optimizations to reach a significant speedup.
 
+## Guide
+
+See [../doc/hw2.md](../doc/hw2.md) for a compact summary of the optimized generation loop, profiler outputs, and Mermaid diagrams of the decode flow.
+
 ## Grading (60 points total)
 
 | Part                                              | Points |

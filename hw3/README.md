@@ -12,6 +12,10 @@ This homework runs on CPU. The model is intentionally small and synthetic so the
 
 **Grading:** this assignment is **optional and ungraded**. It is included for students who want to go beyond HW1 + HW2 and see how a real inference engine manages KV memory and schedules concurrent requests internally; nothing here counts toward the course total.
 
+## Guide
+
+See [../doc/hw3.md](../doc/hw3.md) for a compact summary of the implemented cache manager, scheduler, request lifecycle, and Mermaid diagrams.
+
 ## What You Should Learn
 
 Real inference engines are mostly about keeping expensive compute and scarce KV memory under control while many requests are in flight. This assignment focuses on three ideas that show up in systems such as vLLM, SGLang, TensorRT-LLM, and TGI:

@@ -13,7 +13,7 @@ import torch
 def lowest_ai_fn(x: torch.Tensor) -> torch.Tensor:
     """Lowest arithmetic intensity baseline (0 FLOP/Byte)."""
     # TODO (1 line): implement a lowest-AI op
-    pass
+    return x.clone()
 
 
 # TASK 1b: Implement a function with configurable arithmetic intensity.
@@ -37,10 +37,13 @@ def make_compute_fn(num_ops: int, compiled: bool = True):
     """Return an eager or compiled function whose work scales with num_ops."""
 
     def fn(x: torch.Tensor) -> torch.Tensor:
-        pass
+        acc = x
+        for _ in range(num_ops):
+            acc = acc * x + x
+        return acc
 
     # TODO (1 line): return either `fn` or `torch.compile(fn)` based on `compiled`
-    pass
+    return torch.compile(fn) if compiled else fn
 
 
 # ============================================================================
@@ -63,7 +66,21 @@ def benchmark_fn(fn, *args, warmup=25, rep=100) -> float:
     torch.cuda.synchronize()
 
     # TODO: time `rep` runs using CUDA events and return median latency (ms)
-    pass
+    events = []
+    for _ in range(rep):
+        start = torch.cuda.Event(enable_timing=True)
+        end = torch.cuda.Event(enable_timing=True)
+        start.record()
+        fn(*args)
+        end.record()
+        events.append((start, end))
+
+    torch.cuda.synchronize()
+    timings = sorted(start.elapsed_time(end) for start, end in events)
+    mid = rep // 2
+    if rep % 2:
+        return timings[mid]
+    return 0.5 * (timings[mid - 1] + timings[mid])
 
 
 # TASK 3: Compute element-wise operation metrics from measured runtime.
@@ -84,7 +101,16 @@ def benchmark_fn(fn, *args, warmup=25, rep=100) -> float:
 
 def compute_elementwise_metrics(num_elements, num_ops, bytes_per_element, ms, variant):
     # TODO: compute total FLOPs, arithmetic intensity, and achieved FLOP/s
-    pass
+    total_flops = num_elements * num_ops * 2
+    if variant == "compiled":
+        total_bytes = num_elements * 2 * bytes_per_element
+    elif variant == "eager":
+        total_bytes = num_elements * num_ops * 6 * bytes_per_element
+    else:
+        raise ValueError(f"Unsupported element-wise variant: {variant}")
+
+    ai = total_flops / total_bytes
+    achieved_flops = total_flops / (ms * 1e-3)
     return total_flops, ai, achieved_flops
 
 
@@ -96,13 +122,31 @@ def compute_elementwise_metrics(num_elements, num_ops, bytes_per_element, ms, va
 # Q1. Look at the compiled element-wise operations from `1 ops` through `64 ops`.
 # Why does performance rise as arithmetic intensity increases even though the
 # measured runtime changes only a little?
+# A1. The fused compiled kernels read and write roughly the same amount of
+# memory for each K, but do more arithmetic per element as K grows. Since the
+# denominator in FLOP/s is nearly flat while the numerator grows, achieved
+# FLOP/s rises and the points move rightward toward the compute roof.
 #
 # Q2. In one sample run, `matmul 1024x1024` achieved lower FLOP/s than the
 # `128 ops` compiled element-wise operation. Give one or two reasons why that can
 # happen on a large GPU like an H100.
+# A2. A 1024x1024 FP32 matmul is relatively small for an H100, so launch
+# overhead, tiling overhead, and limited occupancy can keep the library kernel
+# from filling the GPU. The compiled 128-op element-wise kernel has a huge
+# vector length and enough independent per-element arithmetic to keep many CUDA
+# cores busy, so it can report higher FLOP/s for this benchmark.
 #
 # Q3. Between `64 ops` and `128 ops`, runtime increases more noticeably than it
 # did for smaller operations. What does that suggest about what resource is
 # becoming the bottleneck?
+# A3. It suggests the kernel is moving away from a mostly memory-bandwidth bound
+# regime and toward a compute/execution-resource bottleneck. Once the added FMA
+# work is large enough, more operations can no longer be hidden behind the same
+# memory traffic, so runtime starts scaling with arithmetic work.
 #
 # Q4. Why do the eager `ops-K` points look so different from the compiled ones?
+# A4. Eager PyTorch launches separate element-wise multiply and add kernels in
+# each loop iteration and materializes intermediates in global memory. That adds
+# repeated reads and writes, keeps arithmetic intensity low, and includes more
+# launch/runtime overhead. The compiled version fuses the loop body, keeps
+# intermediates in registers, and pays the read/write boundary traffic once.

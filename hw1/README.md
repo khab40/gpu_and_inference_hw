@@ -4,6 +4,10 @@
 
 Build intuition for why some GPU kernels are fast and others are not by plotting real measurements on a roofline diagram.
 
+## Guide
+
+See [../doc/hw1.md](../doc/hw1.md) for a compact summary of what is implemented, how to run it, and the roofline workflow diagram.
+
 ## Grading (40 points total)
 
 | Part                                              | Points |
