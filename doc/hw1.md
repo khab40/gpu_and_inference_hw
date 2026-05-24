@@ -40,7 +40,7 @@ The run writes:
 
 ## Collected H100 Run
 
-From `results/gpu-inference-hw-20260524-165157/hw1/hw1_run.log`:
+From `hw1/results/hw1_run.log`:
 
 | Point | Runtime | AI | Throughput |
 | --- | ---: | ---: | ---: |

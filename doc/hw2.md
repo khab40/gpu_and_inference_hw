@@ -45,7 +45,7 @@ optimized execution.
 
 ## Collected H100 Run
 
-From `results/gpu-inference-hw-20260524-165157/hw2/hw2_run.log`:
+From `hw2/results/hw2_run.log`:
 
 | Loop | Time for 128 tokens | Throughput | Profile CUDA time |
 | --- | ---: | ---: | ---: |
@@ -71,7 +71,7 @@ which bypasses most per-token Transformers wrapper/cache objects and uses
 preallocated KV tensors in a tiny-Llama-specific decode path.
 
 Using the V3 slow baseline from
-`results/gpu-inference-hw-20260524-165157/hw2/hw2_optimized_v3_run.log`
+`hw2/results/hw2_optimized_v3_run.log`
 (`1.006 s`, `127.5 tok/s`) as a common reference:
 
 | Experiment | File | Time for 128 tokens | Throughput | Speedup vs slow |

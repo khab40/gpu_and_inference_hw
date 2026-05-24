@@ -51,7 +51,7 @@ The full run writes:
 
 ## Collected Run
 
-From `results/gpu-inference-hw-20260524-165157/hw3/hw3_run.log`:
+From `hw3/results/hw3_run.log`:
 
 | Workload | Prefix cache | Steps | Throughput | TTFT mean/p95 | E2E mean | Preemptions | Prefix saved |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
