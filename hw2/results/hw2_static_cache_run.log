@@ -1,0 +1,65 @@
+============================================================
+HW2: Experimental Optimal Generation
+Model: Tiny random Llama (2 layers, d_model=2048)
+============================================================
+CUDA: NVIDIA H100 80GB HBM3
+dtype: torch.float32
+prompt length: 1024, generated tokens: 128
+
+--- Slow baseline ---
+Slow: 128 tokens in 0.52s (246.8 tok/s)
+Token preview: [775, 1973, 97, 2453, 295, 695, 775, 866]
+
+--- HW2 optimized DynamicCache loop ---
+DynamicCache: 128 tokens in 0.182s (704.8 tok/s)
+Token preview: [775, 1973, 97, 2453, 295, 695, 775, 866]
+
+--- StaticCache eager decode ---
+StaticCache eager: 128 tokens in 0.229s (560.1 tok/s)
+Token preview: [775, 1973, 97, 2453, 295, 695, 775, 866]
+
+--- StaticCache compiled decode ---
+StaticCache compiled: 128 tokens in 4.468s (28.6 tok/s)
+Token preview: [775, 1973, 97, 2453, 295, 695, 775, 866]
+
+--- Profile StaticCache compiled decode ---
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg       CPU Mem  Self CPU Mem      CUDA Mem  Self CUDA Mem    # of Calls
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------
+## Call CompiledFxGraph fezkv3rz6l5hbogcdrkml5sud3wx...         0.00%       0.000us         0.00%       0.000us       0.000us      71.419ms       215.29%      71.419ms       5.952ms           0 B           0 B           0 B           0 B            12
+       InductorBenchmarker.benchmark_gpu (dynamo_timed)         0.00%       0.000us         0.00%       0.000us       0.000us      57.216ms       172.48%      57.216ms       9.536ms           0 B           0 B           0 B           0 B             6
+                             Torch-Compiled Region: 0/1         0.13%       3.289ms         2.94%      74.713ms       6.792ms       5.853ms        17.64%      31.402ms       2.855ms           0 B           0 B     -32.00 MB           0 B            11
+## Call CompiledFxGraph fezkv3rz6l5hbogcdrkml5sud3wx...         0.15%       3.763ms         2.80%      71.178ms       6.471ms       0.000us         0.00%      25.549ms       2.323ms           0 B      -4.98 KB     -32.00 MB     -64.02 MB            11
+CachingAutotuner.benchmark_all_configs (dynamo_timed...         0.07%       1.809ms         2.47%      62.877ms      20.959ms       0.000us         0.00%      24.930ms       8.310ms           0 B           0 B           0 B           0 B             3
+       InductorBenchmarker.benchmark_gpu (dynamo_timed)         1.30%      32.942ms         2.40%      61.068ms      10.178ms       0.000us         0.00%      24.930ms       4.155ms           0 B           0 B           0 B      -3.64 GB             6
+                                            aten::fill_         0.12%       2.951ms         0.38%       9.533ms       7.608us      20.821ms        62.77%      20.825ms      16.620us           0 B           0 B           0 B           0 B          1253
+                                            aten::zero_         0.20%       5.152ms         0.57%      14.418ms      10.440us       0.000us         0.00%      20.811ms      15.069us           0 B           0 B           0 B           0 B          1381
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      20.795ms        62.69%      20.795ms      16.825us           0 B           0 B           0 B           0 B          1236
+fmha_cutlassF_f32_aligned_32x128_gmem_sm80(PyTorchMe...         0.00%       0.000us         0.00%       0.000us       0.000us       4.500ms        13.57%       4.500ms     187.510us           0 B           0 B           0 B           0 B            24
+                                            aten::copy_         0.57%      14.558ms         1.44%      36.584ms      74.206us       3.292ms         9.93%       3.297ms       6.687us           0 B           0 B           0 B           0 B           493
+                         Memcpy DtoD (Device -> Device)         0.00%       0.000us         0.00%       0.000us       0.000us       3.278ms         9.88%       3.278ms       7.334us           0 B           0 B           0 B           0 B           447
+                                            aten::clone         0.07%       1.770ms         0.29%       7.273ms      15.776us       0.000us         0.00%       3.264ms       7.080us      19.81 KB           0 B       3.35 GB           0 B           461
+           _recursive_joint_graph_passes (dynamo_timed)         0.00%       0.000us         0.00%       0.000us       0.000us       1.184ms         3.57%       1.184ms       1.184ms           0 B           0 B           0 B           0 B             1
+void gemv2T_kernel_val<int, int, float, float, float...         0.00%       0.000us         0.00%       0.000us       0.000us       1.047ms         3.15%       1.047ms      18.688us           0 B           0 B           0 B           0 B            56
+                                               aten::mm         6.72%     170.915ms         6.93%     176.145ms       1.409ms     935.482us         2.82%     935.482us       7.484us           0 B           0 B     240.02 MB     240.02 MB           125
+          aten::_scaled_dot_product_efficient_attention         0.56%      14.173ms         0.84%      21.326ms     888.596us       0.000us         0.00%     863.738us      35.989us          64 B           0 B      16.03 MB           0 B            24
+                     aten::_efficient_attention_forward         0.00%      74.877us         0.01%     189.238us      31.540us     863.738us         2.60%     863.738us     143.956us          64 B           0 B      16.03 MB           0 B             6
+                                           aten::matmul         0.14%       3.606ms         8.81%     224.040ms       3.501ms       0.000us         0.00%     729.338us      11.396us           0 B           0 B     208.52 MB           0 B            64
+                                           aten::linear         0.07%       1.721ms         9.51%     241.719ms       4.029ms       0.000us         0.00%     726.362us      12.106us           0 B           0 B     176.02 MB           0 B            60
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------
+Self CPU time total: 2.542s
+Self CUDA time total: 33.173ms
+
+Trace saved to /home/khab1973/gpu_and_inference_hw/hw2/results/v2_static_cache_compiled_trace.json
+
+============================================================
+SUMMARY
+============================================================
+DynamicCache          :   0.182s     704.8 tok/s
+StaticCache eager     :   0.229s     560.1 tok/s
+StaticCache compiled  :   4.468s      28.6 tok/s
+Speedup vs slow (DynamicCache          ):   2.86x
+Speedup vs slow (StaticCache eager     ):   2.27x
+Speedup vs slow (StaticCache compiled  ):   0.12x
+Speedup vs DynamicCache (StaticCache eager):   0.79x
+Speedup vs DynamicCache (StaticCache compiled):   0.04x

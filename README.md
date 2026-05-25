@@ -4,8 +4,8 @@
 
 ## Contents
 
-- `hw1/` (40 pts): implement and benchmark operations with different arithmetic intensity. **Requires a GPU** (H100 or L40S).
-- `hw2/` (60 pts): profile and optimize an autoregressive generation loop. **Requires a GPU** (L40S recommended; speedup targets are calibrated against it).
+- `hw1/` (40 pts): implement and benchmark operations with different arithmetic intensity. **Requires a GPU** (L40S, H100, or H200).
+- `hw2/` (60 pts): profile and optimize an autoregressive generation loop. **Requires a GPU** (L40S is the default because the speedup targets were calibrated against it).
 - `hw3/` *(optional, ungraded)*: build the memory and scheduling core of a mini LLM inference engine. **Runs on CPU — no GPU needed.**
 
 HW1 and HW2 together add up to **100 points**. See each subfolder's `README.md` for the per-part point breakdown and the expected submission format.
@@ -79,8 +79,13 @@ REMOTE_USER=user
 REMOTE_WORKDIR=gpu_and_inference_hw
 ```
 
-The default GPU target is L40S because HW2 is calibrated for L40S. Use H100
-only if you intentionally want the larger GPU or L40S capacity is unavailable.
+Supported GPU configurations:
+
+| GPU | `NEBIUS_PLATFORM` | `NEBIUS_PRESET` | Notes |
+| --- | --- | --- | --- |
+| L40S | `gpu-l40s-a` | `1gpu-16vcpu-64gb` | Default for new runs; HW2 rubric was calibrated here. |
+| H100 SXM | `gpu-h100-sxm` | `1gpu-16vcpu-200gb` | Used for the collected H100 results. |
+| H200 SXM | `gpu-h200-sxm` | `1gpu-16vcpu-200gb` | Fastest memory path; useful for extra experiments. |
 
 ### 3. Run the Full Lifecycle
 
@@ -112,9 +117,9 @@ After VM creation and upload, you can run individual jobs:
 Additional HW2 experiments can be run after the standard HW2 script:
 
 ```bash
-./scripts/run_hw2_optimal.sh
-./scripts/run_hw2_optimized_2.sh
-./scripts/run_hw2_optimized_v3.sh
+./scripts/run_hw2_static_cache.sh
+./scripts/run_hw2_dynamic_cache_v2.sh
+./scripts/run_hw2_custom_kv.sh
 ./scripts/04_collect_results.sh
 ```
 
@@ -132,8 +137,8 @@ Expected artifacts:
 
 - HW1: `roofline.png`, `roofline_data.json`, `hw1_run.log`
 - HW2: `v0_slow_trace.json`, `v1_optimized_trace.json`, `hw2_run.log`, plus
-  optional experiment logs such as `hw2_optimal_run.log`,
-  `hw2_optimized_2_run.log`, and `hw2_optimized_v3_run.log`
+  optional experiment logs such as `hw2_static_cache_run.log`,
+  `hw2_dynamic_cache_v2_run.log`, and `hw2_custom_kv_run.log`
 - HW3: `hw3_results.png`, `hw3_policy_results.png`, `hw3_tests.log`, `hw3_run.log`
 
 Stop the VM when you may rerun later. Delete it only after confirming the

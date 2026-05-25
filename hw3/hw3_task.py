@@ -669,7 +669,7 @@ if __name__ == "__main__":
 #     realistic scenario in which you would pick each one.
 #
 # Q1:
-# Prefix caching helped both workloads in the collected run, but much more on
+# Prefix caching helped both workloads in the latest collected run, but much more on
 # Prefill-Heavy. Prefill-Heavy dropped from 697 to 284 total steps, TTFT mean
 # dropped from 233.0 to 48.1 steps, and E2E mean dropped from 360.6 to 152.3
 # steps. The cache saved 11008 prompt tokens with a 50.1% hit rate.
@@ -715,4 +715,5 @@ if __name__ == "__main__":
 # by quickly computing prompts and exposing more requests to batching. Decode-
 # first optimizes progress for requests that are already generating, which can
 # reduce tail/E2E latency when interactive users are waiting on ongoing streams.
+# The latest HW3 validation run passed all 45 tests.
 #

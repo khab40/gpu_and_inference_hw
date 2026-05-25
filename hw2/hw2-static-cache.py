@@ -9,7 +9,7 @@ submission stable while testing more aggressive serving-style optimizations:
 - optional CUDA graph replay for fixed-shape decode
 
 Run from the repository root:
-    python hw2/hw2-optimal.py
+    python hw2/hw2-static-cache.py
 """
 
 from __future__ import annotations
@@ -296,7 +296,7 @@ def parse_args():
     parser.add_argument(
         "--dtype",
         choices=["float16", "bfloat16", "float32"],
-        default="float16",
+        default="float32",
         help="Model dtype for the experimental run.",
     )
     parser.add_argument(

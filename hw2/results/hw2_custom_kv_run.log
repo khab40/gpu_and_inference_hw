@@ -1,0 +1,104 @@
+============================================================
+HW2: DynamicCache Optimized V3
+Model: Tiny random Llama (2 layers, d_model=2048)
+============================================================
+CUDA: NVIDIA H100 80GB HBM3
+dtype: torch.float32
+warmup tokens: 32
+timed repeats: 5
+
+--- Slow baseline ---
+Slow: 128 tokens in 0.53s (240.2 tok/s)
+Token preview: [775, 1973, 97, 2453, 295, 695, 775, 866]
+
+--- Warmup (32 tokens) ---
+
+--- DynamicCache V3 ---
+DynamicCache V3 repeat 1/5: 0.135s (945.2 tok/s)
+DynamicCache V3 repeat 2/5: 0.134s (953.6 tok/s)
+DynamicCache V3 repeat 3/5: 0.136s (941.9 tok/s)
+DynamicCache V3 repeat 4/5: 0.135s (950.7 tok/s)
+DynamicCache V3 repeat 5/5: 0.134s (951.8 tok/s)
+DynamicCache V3 median: 0.135s (950.7 tok/s)
+DynamicCache V3 best/worst: 0.134s / 0.136s (953.6 / 941.9 tok/s)
+Token preview: [775, 1973, 97, 2453, 295, 695, 775, 866]
+
+--- CustomKV V3 ---
+CustomKV V3 repeat 1/5: 0.109s (1175.7 tok/s)
+CustomKV V3 repeat 2/5: 0.108s (1188.0 tok/s)
+CustomKV V3 repeat 3/5: 0.107s (1190.8 tok/s)
+CustomKV V3 repeat 4/5: 0.107s (1196.6 tok/s)
+CustomKV V3 repeat 5/5: 0.107s (1191.3 tok/s)
+CustomKV V3 median: 0.107s (1190.8 tok/s)
+CustomKV V3 best/worst: 0.107s / 0.109s (1196.6 / 1175.7 tok/s)
+Token preview: [775, 1973, 97, 2453, 295, 695, 775, 866]
+CustomKV preview matches DynamicCache preview.
+
+--- Profile DynamicCache V3 ---
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg       CPU Mem  Self CPU Mem      CUDA Mem  Self CUDA Mem    # of Calls
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------
+                     aten::scaled_dot_product_attention         1.09%     208.080us         6.42%       1.224ms      50.982us       0.000us         0.00%       3.889ms     162.023us           0 B        -384 B      16.17 MB           0 B            24
+          aten::_scaled_dot_product_efficient_attention         1.16%     220.628us         5.33%       1.015ms      42.312us       0.000us         0.00%       3.889ms     162.023us         384 B           0 B      16.17 MB           0 B            24
+                     aten::_efficient_attention_forward         1.21%     230.251us         3.20%     610.770us      25.449us       3.889ms        43.25%       3.889ms     162.023us         384 B          40 B      16.17 MB           0 B            24
+fmha_cutlassF_f32_aligned_32x128_gmem_sm80(PyTorchMe...         0.00%       0.000us         0.00%       0.000us       0.000us       3.889ms        43.25%       3.889ms     162.023us           0 B           0 B           0 B           0 B            24
+                                           aten::matmul         4.30%     820.004us        22.86%       4.359ms      22.702us       0.000us         0.00%       3.046ms      15.864us           0 B           0 B     178.58 MB           0 B           192
+                                           aten::linear         1.96%     373.874us        25.20%       4.804ms      26.688us       0.000us         0.00%       3.009ms      16.717us           0 B           0 B     178.08 MB           0 B           180
+                                               aten::mm         9.29%       1.772ms        13.99%       2.667ms      14.818us       3.009ms        33.47%       3.009ms      16.717us           0 B           0 B     178.08 MB     178.08 MB           180
+void gemv2T_kernel_val<int, int, float, float, float...         0.00%       0.000us         0.00%       0.000us       0.000us       1.152ms        12.82%       1.152ms      20.579us           0 B           0 B           0 B           0 B            56
+std::enable_if<!(false), void>::type internal::gemvx...         0.00%       0.000us         0.00%       0.000us       0.000us     721.697us         8.03%     721.697us       8.201us           0 B           0 B           0 B           0 B            88
+sm90_xmma_gemm_f32f32_tf32f32_f32_tn_n_tilesize128x1...         0.00%       0.000us         0.00%       0.000us       0.000us     711.963us         7.92%     711.963us      50.855us           0 B           0 B           0 B           0 B            14
+                                              aten::cat         3.48%     663.310us         6.22%       1.185ms      10.972us     597.626us         6.65%     597.626us       5.534us           0 B           0 B     419.42 MB     419.42 MB           108
+                                              aten::mul         7.24%       1.379ms        12.76%       2.432ms       9.212us     551.712us         6.14%     551.712us       2.090us           0 B           0 B     196.08 MB     196.08 MB           264
+std::enable_if<!(false), void>::type internal::gemvx...         0.00%       0.000us         0.00%       0.000us       0.000us     420.158us         4.67%     420.158us      19.098us           0 B           0 B           0 B           0 B            22
+void at::native::(anonymous namespace)::CatArrayBatc...         0.00%       0.000us         0.00%       0.000us       0.000us     389.401us         4.33%     389.401us       8.850us           0 B           0 B           0 B           0 B            44
+void at::native::elementwise_kernel<128, 2, at::nati...         0.00%       0.000us         0.00%       0.000us       0.000us     366.080us         4.07%     366.080us       2.274us           0 B           0 B           0 B           0 B           161
+                                              aten::add         3.99%     760.322us         7.40%       1.410ms       9.038us     253.051us         2.81%     253.051us       1.622us           0 B           0 B      64.73 MB      64.73 MB           156
+void at::native::(anonymous namespace)::CatArrayBatc...         0.00%       0.000us         0.00%       0.000us       0.000us     189.376us         2.11%     189.376us       3.642us           0 B           0 B           0 B           0 B            52
+                                             aten::mean         2.44%     465.390us         3.82%     728.300us      12.138us     158.945us         1.77%     158.945us       2.649us           0 B           0 B      47.50 KB      47.50 KB            60
+void at::native::reduce_kernel<512, 1, at::native::R...         0.00%       0.000us         0.00%       0.000us       0.000us     158.945us         1.77%     158.945us       2.649us           0 B           0 B           0 B           0 B            60
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us     155.872us         1.73%     155.872us       1.973us           0 B           0 B           0 B           0 B            79
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------
+Self CPU time total: 19.063ms
+Self CUDA time total: 8.990ms
+
+Trace saved to /home/khab1973/gpu_and_inference_hw/hw2/results/v3_dynamic_cache_trace.json
+
+--- Profile CustomKV V3 ---
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg       CPU Mem  Self CPU Mem      CUDA Mem  Self CUDA Mem    # of Calls
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------
+                     aten::scaled_dot_product_attention         0.98%     166.861us         6.50%       1.108ms      46.166us       0.000us         0.00%       4.247ms     176.959us          64 B        -256 B      16.17 MB           0 B            24
+          aten::_scaled_dot_product_efficient_attention         0.87%     147.939us         5.52%     941.132us      39.214us       0.000us         0.00%       4.247ms     176.959us         384 B           0 B      16.17 MB           0 B            24
+                     aten::_efficient_attention_forward         1.65%     280.744us         3.63%     619.616us      25.817us       4.247ms        48.05%       4.247ms     176.959us         384 B           0 B      16.17 MB           0 B            24
+fmha_cutlassF_f32_aligned_32x128_gmem_sm80(PyTorchMe...         0.00%       0.000us         0.00%       0.000us       0.000us       4.247ms        48.05%       4.247ms     176.959us           0 B           0 B           0 B           0 B            24
+                                           aten::matmul         3.58%     610.428us        22.40%       3.819ms      19.891us       0.000us         0.00%       2.927ms      15.243us           0 B           0 B     178.58 MB           0 B           192
+                                           aten::linear         1.73%     295.177us        24.04%       4.098ms      22.769us       0.000us         0.00%       2.890ms      16.056us           0 B           0 B     178.08 MB           0 B           180
+                                               aten::mm         9.41%       1.604ms        14.50%       2.471ms      13.729us       2.890ms        32.69%       2.890ms      16.056us           0 B           0 B     178.08 MB     178.08 MB           180
+void gemv2T_kernel_val<int, int, float, float, float...         0.00%       0.000us         0.00%       0.000us       0.000us       1.040ms        11.76%       1.040ms      18.568us           0 B           0 B           0 B           0 B            56
+std::enable_if<!(false), void>::type internal::gemvx...         0.00%       0.000us         0.00%       0.000us       0.000us     715.194us         8.09%     715.194us       8.127us           0 B           0 B           0 B           0 B            88
+sm90_xmma_gemm_f32f32_tf32f32_f32_tn_n_tilesize128x1...         0.00%       0.000us         0.00%       0.000us       0.000us     710.140us         8.03%     710.140us      50.724us           0 B           0 B           0 B           0 B            14
+                                              aten::mul         6.68%       1.139ms        12.79%       2.181ms       8.260us     546.235us         6.18%     546.235us       2.069us           0 B           0 B     196.08 MB     196.08 MB           264
+std::enable_if<!(false), void>::type internal::gemvx...         0.00%       0.000us         0.00%       0.000us       0.000us     421.979us         4.77%     421.979us      19.181us           0 B           0 B           0 B           0 B            22
+void at::native::elementwise_kernel<128, 2, at::nati...         0.00%       0.000us         0.00%       0.000us       0.000us     362.140us         4.10%     362.140us       2.249us           0 B           0 B           0 B           0 B           161
+                                              aten::add         3.98%     678.827us         7.63%       1.301ms       8.338us     241.850us         2.74%     241.850us       1.550us           0 B           0 B      64.73 MB      64.73 MB           156
+                                             aten::mean         2.30%     392.530us         3.78%     644.027us      10.734us     155.486us         1.76%     155.486us       2.591us           0 B           0 B      47.50 KB      47.50 KB            60
+void at::native::reduce_kernel<512, 1, at::native::R...         0.00%       0.000us         0.00%       0.000us       0.000us     155.486us         1.76%     155.486us       2.591us           0 B           0 B           0 B           0 B            60
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us     154.528us         1.75%     154.528us       1.956us           0 B           0 B           0 B           0 B            79
+                                              aten::cat         2.06%     350.570us         3.74%     637.055us      10.618us     150.499us         1.70%     150.499us       2.508us           0 B           0 B      33.35 MB      33.35 MB            60
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us     134.815us         1.53%     134.815us       1.465us           0 B           0 B           0 B           0 B            92
+                                            aten::copy_         1.83%     312.675us         4.51%     768.826us      10.678us     133.693us         1.51%     133.693us       1.857us           0 B           0 B           0 B           0 B            72
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------
+Self CPU time total: 17.047ms
+Self CUDA time total: 8.840ms
+
+Trace saved to /home/khab1973/gpu_and_inference_hw/hw2/results/v3_custom_kv_trace.json
+
+============================================================
+SUMMARY
+============================================================
+DynamicCache V3 median:   0.135s     950.7 tok/s
+CustomKV V3 median:       0.107s    1190.8 tok/s
+Dynamic speedup vs slow:  3.96x
+Custom speedup vs slow:   4.96x
+CustomKV vs Dynamic:      1.25x

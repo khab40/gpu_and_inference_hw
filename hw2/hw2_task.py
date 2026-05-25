@@ -59,7 +59,7 @@ def generate_optimized(optimized_trace_name: str) -> float:
     # TODO: load the model (consider dtype and other loading options),
     # then call profile() and time_generation() on optimized_loop.
     # Return the elapsed time from time_generation so main() can print a speedup.
-    model = build_model(torch.float16)
+    model = build_model(torch.float32)
     input_ids = get_input_ids()
     profile(optimized_loop, model, input_ids, optimized_trace_name)
     return time_generation(optimized_loop, model, input_ids, "Optimized")
@@ -112,12 +112,12 @@ if __name__ == "__main__":
 #   during generation and are copied to the CPU once at the end for preview.
 # - Removed per-step torch.cat() growth of generated_ids. The loop no longer
 #   rebuilds an ever-longer input tensor because the KV cache owns history.
-# - Loaded the optimized model in float16 to use lower-bandwidth, Tensor Core
-#   friendly inference math on the target CUDA GPU.
-# - On the collected H100 run, the baseline produced 128 tokens in 0.95s
-#   (134.8 tok/s). The optimized loop produced 128 tokens in 0.19s
-#   (668.9 tok/s), for a 4.96x speedup. The profiler also showed CUDA time
-#   dropping from 79.964 ms in the slow 12-step trace to 4.617 ms in the
+# - Kept the optimized model in float32 so the slow and optimized token
+#   previews are directly comparable as correctness evidence.
+# - On the latest collected H100 FP32 run, the baseline produced 128 tokens
+#   in 0.95s (135.4 tok/s). The optimized loop produced 128 tokens in 0.16s
+#   (811.4 tok/s), for a 5.99x speedup. The profiler also showed CUDA time
+#   dropping from 80.444 ms in the slow 12-step trace to 13.130 ms in the
 #   optimized 12-step trace.
 #
 # Biggest impact and why:
@@ -126,18 +126,21 @@ if __name__ == "__main__":
 # forward over the entire growing sequence into a single-token forward that
 # reuses stored keys and values, so the amount of attention and MLP work per
 # generated token drops dramatically. The trace confirms the shape change:
-# slow matmul CUDA time was 70.305 ms over the profiled decode steps, while the
-# optimized trace spent only 2.017 ms in matmul despite generating the same
+# slow matmul CUDA time was 70.739 ms over the profiled decode steps, while the
+# optimized trace spent only 7.332 ms in matmul despite generating the same
 # number of profile tokens.
 #
 # Additional experiments:
 #
 # I also tested separate experimental scripts without changing this graded
-# solution. StaticCache did not help on this tiny H100 workload: eager
-# StaticCache ran at 0.266s for 128 tokens and compiled StaticCache ran at
-# 2.711s, slower than the DynamicCache path. A second DynamicCache pass removed
-# CPU list conversion from the timed region, used repeat/median timing, warmed
-# up longer, and reached a 0.166s median. The fastest experiment was a
-# tiny-Llama-specific CustomKV loop with preallocated KV tensors, which reached
-# 0.134s for 128 tokens (957.5 tok/s), 7.51x over its slow baseline and 1.42x
-# faster than this original optimized loop.
+# solution. hw2-static-cache.py compared DynamicCache and StaticCache: on the
+# latest H100 FP32 run, DynamicCache reached 0.182s (704.8 tok/s), StaticCache
+# eager reached 0.229s (560.1 tok/s), and compiled StaticCache was much slower
+# at 4.468s because compile/cudagraph overhead dominated this tiny decode loop.
+# hw2-dynamic-cache-v2.py used longer warmup and removed CPU token conversion
+# from the timed region, reaching 0.133s (962.0 tok/s), or 3.92x over its
+# paired slow baseline. The fastest experiment was hw2-custom-kv.py, a
+# tiny-Llama-specific loop with preallocated KV tensors. It reached a 0.107s
+# median for 128 tokens (1190.8 tok/s), 4.96x over its paired slow baseline
+# and 1.25x faster than the DynamicCache V3 median. All latest FP32 previews
+# match the slow baseline: [775, 1973, 97, 2453, 295, 695, 775, 866].

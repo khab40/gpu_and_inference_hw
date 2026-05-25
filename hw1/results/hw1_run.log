@@ -15,19 +15,19 @@ Running benchmarks (first run compiles kernels via torch.compile)...
     2 ops (compiled): 0.181 ms | AI: 0.5 FLOP/B | 1.48 TFLOP/s
     4 ops (   eager): 2.021 ms | AI: 0.0833 FLOP/B | 0.27 TFLOP/s
     4 ops (compiled): 0.181 ms | AI: 1 FLOP/B | 2.97 TFLOP/s
-    8 ops (   eager): 4.122 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
+    8 ops (   eager): 4.121 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
     8 ops (compiled): 0.181 ms | AI: 2 FLOP/B | 5.93 TFLOP/s
-   16 ops (   eager): 8.325 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
+   16 ops (   eager): 8.324 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
    16 ops (compiled): 0.181 ms | AI: 4 FLOP/B | 11.85 TFLOP/s
-   32 ops (   eager): 16.735 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
-   32 ops (compiled): 0.181 ms | AI: 8 FLOP/B | 23.71 TFLOP/s
-   64 ops (   eager): 33.551 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
-   64 ops (compiled): 0.181 ms | AI: 16 FLOP/B | 47.39 TFLOP/s
-  128 ops (   eager): 67.183 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
-  128 ops (compiled): 0.283 ms | AI: 32 FLOP/B | 60.70 TFLOP/s
-  matmul 1024×1024: 0.058 ms | AI: 170.7 FLOP/B | 37.26 TFLOP/s
-  matmul 2048×2048: 0.339 ms | AI: 341.3 FLOP/B | 50.62 TFLOP/s
-  matmul 4096×4096: 2.633 ms | AI: 682.7 FLOP/B | 52.21 TFLOP/s
+   32 ops (   eager): 16.734 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
+   32 ops (compiled): 0.181 ms | AI: 8 FLOP/B | 23.69 TFLOP/s
+   64 ops (   eager): 33.549 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
+   64 ops (compiled): 0.181 ms | AI: 16 FLOP/B | 47.35 TFLOP/s
+  128 ops (   eager): 67.177 ms | AI: 0.0833 FLOP/B | 0.26 TFLOP/s
+  128 ops (compiled): 0.285 ms | AI: 32 FLOP/B | 60.26 TFLOP/s
+  matmul 1024×1024: 0.059 ms | AI: 170.7 FLOP/B | 36.55 TFLOP/s
+  matmul 2048×2048: 0.344 ms | AI: 341.3 FLOP/B | 49.90 TFLOP/s
+  matmul 4096×4096: 2.654 ms | AI: 682.7 FLOP/B | 51.78 TFLOP/s
 
 Generating plots...
 

@@ -126,8 +126,8 @@ def compute_elementwise_metrics(num_elements, num_ops, bytes_per_element, ms, va
 # memory for each K, but do more arithmetic per element as K grows. Since the
 # denominator in FLOP/s is nearly flat while the numerator grows, achieved
 # FLOP/s rises and the points move rightward toward the compute roof. In the
-# H100 run, compiled 1→64 ops stayed around 0.181 ms while throughput rose
-# from 0.74 to 47.39 TFLOP/s as AI rose from 0.25 to 16 FLOP/B.
+# H100 run, compiled 1->64 ops stayed around 0.181 ms while throughput rose
+# from 0.74 to 47.35 TFLOP/s as AI rose from 0.25 to 16 FLOP/B.
 #
 # Q2. In one sample run, `matmul 1024x1024` achieved lower FLOP/s than the
 # `128 ops` compiled element-wise operation. Give one or two reasons why that can
@@ -137,8 +137,8 @@ def compute_elementwise_metrics(num_elements, num_ops, bytes_per_element, ms, va
 # from filling the GPU. The compiled 128-op element-wise kernel has a huge
 # vector length and enough independent per-element arithmetic to keep many CUDA
 # cores busy, so it can report higher FLOP/s for this benchmark. In the H100
-# run, matmul 1024x1024 reached 37.26 TFLOP/s, while compiled 128 ops reached
-# 60.70 TFLOP/s.
+# run, matmul 1024x1024 reached 36.55 TFLOP/s, while compiled 128 ops reached
+# 60.26 TFLOP/s.
 #
 # Q3. Between `64 ops` and `128 ops`, runtime increases more noticeably than it
 # did for smaller operations. What does that suggest about what resource is
@@ -147,8 +147,8 @@ def compute_elementwise_metrics(num_elements, num_ops, bytes_per_element, ms, va
 # regime and toward a compute/execution-resource bottleneck. Once the added FMA
 # work is large enough, more operations can no longer be hidden behind the same
 # memory traffic, so runtime starts scaling with arithmetic work. The H100 run
-# shows this transition clearly: compiled 64 ops took 0.181 ms at 47.39 TFLOP/s,
-# while 128 ops took 0.283 ms at 60.70 TFLOP/s.
+# shows this transition clearly: compiled 64 ops took 0.181 ms at 47.35 TFLOP/s,
+# while 128 ops took 0.285 ms at 60.26 TFLOP/s.
 #
 # Q4. Why do the eager `ops-K` points look so different from the compiled ones?
 # A4. Eager PyTorch launches separate element-wise multiply and add kernels in

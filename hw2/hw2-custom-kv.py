@@ -14,7 +14,7 @@ tightens the benchmark and trims per-token overhead:
 It deliberately avoids changing `hw2_task.py`.
 
 Run from the repository root:
-    python hw2/hw2-optimized_v3.py --include-baseline --profile
+    python hw2/hw2-custom-kv.py --include-baseline --profile
 """
 
 from __future__ import annotations
@@ -382,7 +382,7 @@ def parse_args():
     parser.add_argument(
         "--dtype",
         choices=["float16", "bfloat16", "float32"],
-        default="float16",
+        default="float32",
         help="Model dtype for the experimental run.",
     )
     parser.add_argument(
